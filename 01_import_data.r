@@ -17,11 +17,13 @@ recovered <- recovered %>%
 
 data <- confirmed %>%
   left_join(deaths) %>% 
-  left_join(recovered)
+  left_join(recovered) %>% 
+  pivot_longer(-c(1:5), names_to = "condition" , values_to = "value")
 
 library(lubridate)
 
 data %>% mutate(date = mdy(date)) %>% 
+  pivot_wider( names_from = "condition" , values_from = "value") %>% 
   arrange(date) %>% 
   group_by(`Province/State`, `Country/Region`) %>% 
   summarise(confirmados = max(confirmed),
@@ -29,7 +31,5 @@ data %>% mutate(date = mdy(date)) %>%
             recuperados = max(recovered)) %>% 
   arrange(desc(confirmados))
 
-dates <- unique(data$date)
-last_day <- dates[[length(dates)]]
 
 

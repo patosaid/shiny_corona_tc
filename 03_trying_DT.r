@@ -23,12 +23,17 @@ data %>%
   filter(condition == "confirmed") %>% 
   group_by(`Country/Region`) %>% 
   summarise(total_confirmed_by_country = sum(value)) %>% 
+  ungroup() %>% 
   arrange(desc(total_confirmed_by_country)) %>% 
   slice(c(1:15)) %>% 
   datatable(rownames = FALSE , filter = 'none', 
             options = list(
               columnDefs = list(list(width = '100px', targets = "_all"))), # tamaño de la columna?....
             colnames = c("Country", "Total Confirmed"))
+
+
+
+
 
 
 

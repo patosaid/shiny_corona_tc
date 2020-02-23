@@ -44,7 +44,7 @@ data %>%
 
 # A confirmados se le resta los recuperados y muertes para saber la situacion actual
 
-table <- data %>% 
+data %>% 
   select(`Country/Region` ,date, condition, value) %>% 
   filter(date == last_day) %>% 
   group_by(`Country/Region`, condition) %>% 
@@ -56,14 +56,27 @@ table <- data %>%
   mutate(confirmed_now = confirmed - deaths - recovered)
 
 ############# TABLA POR DIA, CONFIRMADOS RECUPERADOS Y MUERTES #################
-
+# confirmados/muertes/recuperados por DIA (acumulado)
 data %>%
+  mutate(date = mdy(date)) %>% 
   group_by(date, condition) %>% 
   summarise(valor = sum(value))
 
 
+######### TABLA DE CAMBIO ######################################################
+# confirmados/muertes/recuperados por DIA (cambio(delta))
+data %>%
+  mutate(date = mdy(date)) %>% 
+  group_by(date, condition) %>% 
+  summarise(value = sum(value)) %>% 
+  ungroup() %>% 
+  arrange(condition, date) %>% 
+  mutate(delta_day = value - lag(value , default = 0)) %>% 
+  mutate(delta_day = ifelse(date=="2020-01-22", 0, delta_day))
 
-  
+# QUE MAS??????
+
+# Modelos ...? tidy model? ver Cap. de modelos... seriestemporales?
 
 
 

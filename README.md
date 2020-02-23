@@ -1,1 +1,3 @@
 # shiny_corona_tc
+
+- [] Hacer le primer commit...

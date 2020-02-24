@@ -1,0 +1,13 @@
+name: shiny_corona_tc
+title: shiny_corona_tc
+username:
+account: psaid
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1852371
+bundleId: 2825681
+url: https://psaid.shinyapps.io/shiny_corona_tc/
+when: 1582575788.01875
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 01_import_data.r|02_calculations.r|03_trying_DT.r|04_plotly.r|05_plot_high.r|README.md

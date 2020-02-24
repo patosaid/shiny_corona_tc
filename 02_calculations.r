@@ -1,11 +1,12 @@
 # 02 Hacer algunos resúmenes
 
-########## TOTAL CONFIRMADOS ###################################################
-# Usando data de 01_import_data.r
-# Primera forma de obtener el "total global"
 
 dates <- unique(data$date)
 last_day <- dates[[length(dates)]]
+
+########## TOTAL CONFIRMADOS ###################################################
+# Usando data de 01_import_data.r
+# Primera forma de obtener el "total global"
 
 data %>% 
   filter(date == last_day) %>% 
@@ -25,6 +26,18 @@ data %>%
   summarise(total_confirmed_by_country = sum(value)) %>% 
   arrange(desc(total_confirmed_by_country)) %>% 
   head(15)
+
+######### TABLA DE PAISES CON MAYOR CANTIDAD DE CONFIRMADOS UNIDO ##############
+
+data %>% 
+  select(`Country/Region` ,date, condition, value) %>% 
+  filter(date == last_day) %>% 
+  filter(condition == "confirmed") %>% 
+  group_by(`Country/Region`) %>% 
+  summarise(total_confirmed_by_country = sum(value)) %>% 
+  arrange(desc(total_confirmed_by_country)) %>% 
+  head(15) %>% 
+  unite("Confirmed by Country" , 2:1, sep = " ")
 
 
 ######### TABLA DE TOTALES (CONFIRMADOS-MUERTES-RECUPERADOS) POR PAIS ##########

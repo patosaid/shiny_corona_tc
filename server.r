@@ -165,12 +165,17 @@ server <- function(input, output) {
                                 "<br />Date: ", date)) %>%
       #  animation_slider(frame= as.character(dias[[1]][[nrow(dias)]])) %>% 
       animation_button(  # esto parece que no sirve...
-        x = 1, xanchor = "right", y = 0, yanchor = "bottom"
+        x = 0, xanchor = "left", y = -0.2, yanchor = "bottom"
       ) %>% 
       layout(geo = g) %>%  # Las opciones del mapa!
-      animation_opts( easing = "elastic", redraw = FALSE, 
-                      transition = 500, mode = "afterall"
-      ) # parece que no sirve....
+      animation_opts(
+        frame = 50, 
+        transition = 0, 
+        redraw = FALSE
+      )%>% # parece que no sirve....
+      animation_slider(
+        currentvalue = list(prefix = "Date:", font = list(color="black"))
+      )
     plotly_map
   })
 

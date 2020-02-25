@@ -20,7 +20,7 @@ dashboardPage(title = "The progress of 2019 Novel Coronavirus (2019‐nCoV) by P
       ),
       box(width = 6,
         p("Click the play button to see the progress:"),
-        plotlyOutput("world_animated")),
+        plotlyOutput("world_animated", width = "100%")),
       box(width = 2, 
         DT::dataTableOutput("table_country_death")
       ),

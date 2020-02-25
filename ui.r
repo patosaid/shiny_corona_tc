@@ -5,9 +5,10 @@ library(plotly)
 library(highcharter)
 
 dashboardPage(title = "The progress of 2019 Novel Coronavirus (2019‐nCoV) by Patricio Said",
+              skin = "red",
   dashboardHeader(title  = "The progress of 2019 Novel Coronavirus (2019‐nCoV) by Patricio Said", titleWidth = "100%"),
   dashboardSidebar(disable = TRUE),
-  dashboardBody(
+  dashboardBody(tags$head(includeHTML(("google.html"))),
     fluidRow(
       valueBoxOutput("confirmed_value"),
       valueBoxOutput("deaths_value"),
@@ -28,11 +29,21 @@ dashboardPage(title = "The progress of 2019 Novel Coronavirus (2019‐nCoV) by P
       )
     ),
     fluidRow(
-      box(
+      box(title = "Cumulative cases",
         highchartOutput("plot1")
       ),
-      box(
+      box(title = "Daily cases",
         highchartOutput("plot2")
+      )
+    ),
+    fluidRow(
+      column( width = 12, 
+        textOutput("day_updated"),
+        p("Data source from GitHub ", 
+          a(href = "https://github.com/CSSEGISandData/COVID-19", "here"), ".",
+          br(),
+          "Made by",a(href="https://twitter.com/Patosaid_cl", "Patricio Said") ,
+          "with Shiny, Highcharter, Plotly and DataTables.")
       )
     )
   )

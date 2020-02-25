@@ -219,5 +219,13 @@ server <- function(input, output) {
     hc2
     
   })
+  
+################## PRINT INFORMATION ##############################
+  
+  output$day_updated <- renderText({
+    last_day2 <- as.Date(last_day , format = "%m/%d/%y")
+    last_day2 <- format(last_day2, format = "%B %d %Y")
+    paste("Last updated:", last_day2)
+  })
  
 }

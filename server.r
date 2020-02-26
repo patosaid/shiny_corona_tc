@@ -75,7 +75,7 @@ server <- function(input, output) {
   
   output$existing_value <- renderValueBox({
     total_existing <- prettyNum(
-                      total_condition[[2]][[1]] - total_condition[[2]][[2]],
+                      total_condition[[2]][[1]] - total_condition[[2]][[2]] - total_condition[[2]][[3]]  ,
                                 big.mark = ".", decimal.mark = ",")
     valueBox(
       paste0(total_existing), "Total Existing", 

@@ -10,17 +10,19 @@ dashboardPage(title = "The progress of 2019 Novel Coronavirus (2019‐nCoV) by P
   dashboardSidebar(disable = TRUE),
   dashboardBody(tags$head(includeHTML(("google.html"))),
     fluidRow(
-      valueBoxOutput("confirmed_value"),
-      valueBoxOutput("deaths_value"),
-      valueBoxOutput("recovered_value")
+      valueBoxOutput("confirmed_value", width = 3),
+      valueBoxOutput("deaths_value", width = 3),
+      valueBoxOutput("recovered_value", width = 3),
+      valueBoxOutput("existing_value", width = 3)
     ),
     fluidRow(
       box(width = 2,
         DT::dataTableOutput("table_country_confirmed")
       ),
       box(width = 6,
-        p("Click the play button to see the progress:"),
-        plotlyOutput("world_animated", width = "100%")),
+        p("Click the play button to see the progress"),
+        plotlyOutput("world_animated", height = "90%")
+      ),
       box(width = 2, 
         DT::dataTableOutput("table_country_death")
       ),

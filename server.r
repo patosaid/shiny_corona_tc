@@ -9,7 +9,7 @@ library(highcharter)
 server <- function(input, output) {
   options(DT.options = 
             list( autoWidth = T, lengthChange = FALSE, 
-              scrollY = "365px", pageLength = 1000,
+              scrollY = "410px", pageLength = 1000,
               dom='t',ordering=F))
   options(highcharter.theme = hc_theme_smpl())
   
@@ -27,7 +27,7 @@ server <- function(input, output) {
 
   data <- confirmed %>%
     left_join(deaths) %>% 
-    left_join(recovered) %>% 
+    full_join(recovered) %>% 
     pivot_longer(-c(1:5), names_to = "condition" , values_to = "value")
   
   # eliminar los datos importados para trabajabar sobre `data`
@@ -41,7 +41,7 @@ server <- function(input, output) {
   total_condition <- data %>% 
     filter(date == last_day) %>% 
     group_by(condition) %>% 
-    summarise(total = sum(value))
+    summarise(total = sum(value)) 
   
   
   ########## RENDER VALUEBOX ###################################################
@@ -73,6 +73,16 @@ server <- function(input, output) {
     )
   })
   
+  output$existing_value <- renderValueBox({
+    total_existing <- prettyNum(
+                      total_condition[[2]][[1]] - total_condition[[2]][[2]],
+                                big.mark = ".", decimal.mark = ",")
+    valueBox(
+      paste0(total_existing), "Total Existing", 
+      color = "orange"
+    )
+  })
+  
 ###### RENDER TABLES ####################################
   
   output$table_country_confirmed <- renderDataTable(
@@ -84,10 +94,14 @@ server <- function(input, output) {
       group_by(`Country/Region`) %>% 
       summarise(total_confirmed_by_country = sum(value)) %>% 
       arrange(desc(total_confirmed_by_country)) %>% 
-      mutate_if(is.numeric , ~prettyNum(., big.mark = ".", decimal.mark = "," )) %>% 
+      mutate_if(is.numeric , ~prettyNum(., big.mark = ".", decimal.mark = "," )) %>%
+      mutate(total_confirmed_by_country = paste0("<strong>", 
+                                                 total_confirmed_by_country,
+                                                 "</strong>")) %>% 
       unite("Confirmed by Country" , 2:1, sep = " "), 
     selection = 'none',
-    rownames = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
   
   output$table_country_death <- renderDataTable(
@@ -100,12 +114,13 @@ server <- function(input, output) {
       summarise(total_deaths_by_country = sum(value)) %>% 
       arrange(desc(total_deaths_by_country)) %>% 
       mutate_if(is.numeric , ~prettyNum(., big.mark = ".", decimal.mark = "," )) %>% 
+      mutate(total_deaths_by_country = paste0("<strong>", 
+                                              total_deaths_by_country,
+                                                 "</strong>")) %>%
       unite("Deaths by Country", 2:1, sep = " "),
     selection = 'none',
     rownames = FALSE,
-    options = list(
-      columnDefs = list(list(width = '100%px', targets = "_all"))
-    )
+    escape = FALSE
   )
   
   output$table_country_recovered <- renderDataTable(
@@ -118,13 +133,16 @@ server <- function(input, output) {
       summarise(total_recovered_by_country = sum(value)) %>% 
       arrange(desc(total_recovered_by_country)) %>% 
       mutate_if(is.numeric , ~prettyNum(., big.mark = ".", decimal.mark = "," )) %>% 
+      mutate(total_recovered_by_country = paste0("<strong>", 
+                                                 total_recovered_by_country,
+                                                 "</strong>")) %>%
       unite("Recovered by Country", 2:1, sep = " "), 
     selection = 'none',
-    rownames = FALSE
+    rownames = FALSE,
+    escape = FALSE
   )
   
 ############ PLOTLY WORLD ################################
-
 
   
  output$world_animated <- renderPlotly({
@@ -136,6 +154,13 @@ server <- function(input, output) {
              countrycolor = toRGB("white"),
              countrywidth = 0.2,
              projection = list(type = 'Mercator'))
+   m <- list(
+     l = 10,
+     r = 10,
+     b = 10,
+     t = 0,
+     pad = 4
+   )
    
     plotly_map <- data %>%   
       mutate(date = mdy(date)) %>% 
@@ -145,29 +170,35 @@ server <- function(input, output) {
              lat = Lat,
              lon = Long) %>% 
       mutate(Date = as.character(date)) %>% 
-      filter(condition == "confirmed") %>%  # Para plotear solo los confirmados
-      mutate(value = ifelse(value == 0 , NA, value)) %>%  # Pasar 0 a NA por plotly plotea los 0's
+      #filter(condition == "confirmed") %>%  # Para plotear solo los confirmados
+      pivot_wider(names_from = condition , values_from = value) %>% 
+      mutate(existing = confirmed - recovered) %>% 
+      mutate(confirmed = ifelse(confirmed == 0 , NA, confirmed)) %>%  # Pasar 0 a NA por plotly plotea los 0's
       plot_geo(marker = list(color = toRGB("red"), # Cambiar colores
                              opacity = 0.5,
                              line = list(color = toRGB("red"),
                                          width = 1.5))) %>%
       add_markers(x = ~lon,
                   y = ~lat,
-                  sizes = c(2,max(data$value)/20),
-                  size = ~value,
+                  sizes = c(4,max(data$value)/20),
+                  size = ~confirmed,
                   frame = ~Date,
                   showlegend = F,
                   type = 'scatter',
                   mode = 'markers',
                   hoverinfo = "text",
                   text = ~paste('Country: ', Country, #Etiquetas 
-                                '<br />Confirmed: ', value,
+                                '<br />City: ', ifelse(is.na(State), "", State),
+                                '<br />Confirmed: ', ifelse(is.na(confirmed), 0, confirmed),
+                                '<br />Death: ', ifelse(is.na(deaths), 0, deaths),
+                               #'<br />Recovered: ', ifelse(is.na(recovered), 0, recovered),
+                                '<br />Existing: ', ifelse(is.na(existing), 0, existing),
                                 "<br />Date: ", date)) %>%
       #  animation_slider(frame= as.character(dias[[1]][[nrow(dias)]])) %>% 
       animation_button(  # esto parece que no sirve...
         x = 0, xanchor = "left", y = -0.2, yanchor = "bottom"
       ) %>% 
-      layout(geo = g) %>%  # Las opciones del mapa!
+      layout(geo = g, autosize = T, margin = m) %>%  # Las opciones del mapa!
       animation_opts(
         frame = 50, 
         transition = 0, 
@@ -175,7 +206,9 @@ server <- function(input, output) {
       )%>% # parece que no sirve....
       animation_slider(
         currentvalue = list(prefix = "Date:", font = list(color="black"))
-      )
+      ) %>% 
+      config(modeBarButtonsToRemove = c("toImage", "pan2d", "select2d", "lasso2d",
+                                        "hoverClosestGeo"), displaylogo = F)
     plotly_map
   })
 
@@ -185,6 +218,7 @@ server <- function(input, output) {
    
    data_hc <- data %>%
      mutate(date = mdy(date)) %>% 
+     mutate(date = format(date, "%m/%d/%y")) %>% 
      group_by(date, condition) %>% 
      summarise(value = sum(value)) %>% 
      pivot_wider(names_from = condition, values_from = value) %>% 
@@ -203,7 +237,7 @@ server <- function(input, output) {
   output$plot2 <- renderHighchart({
     
     data_hc_2 <- data %>%
-      mutate(date = mdy(date)) %>% 
+      mutate(date = mdy(date)) %>%
       group_by(date, condition) %>% 
       summarise(value = sum(value)) %>% 
       ungroup() %>% 
@@ -211,7 +245,8 @@ server <- function(input, output) {
       mutate(delta_day = value - lag(value , default = 0)) %>% 
       mutate(delta_day = ifelse(date=="2020-01-22", 0, delta_day)) %>% 
       select(-value) %>% 
-      pivot_wider(names_from = condition , values_from = delta_day)
+      pivot_wider(names_from = condition , values_from = delta_day) %>% 
+      mutate(date = format(date, "%m/%d/%y")) 
     
     hc2 <- highchart() %>% hc_chart(type = "column") %>% 
       hc_add_series(name = "Confirmed", data = data_hc_2$confirmed) %>% 
